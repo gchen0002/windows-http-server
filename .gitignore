@@ -1,0 +1,22 @@
+# Build artifacts
+build/
+bin/
+lib/
+*.exe
+*.o
+*.lib
+*.dll
+
+# IDE and Editor
+.vscode/
+.idea/
+
+# Project specific
+AGENTS.md
+skills/
+config.ini
+*.log
+
+# System
+.DS_Store
+Thumbs.db
