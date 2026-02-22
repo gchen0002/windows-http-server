@@ -12,9 +12,8 @@ ServerSocket::ServerSocket(int port) {
     // creating the socket
     sock_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock_ == INVALID_SOCKET) {
-        throw std::runtime_error("socket() failed: " + std::to_string(WSAGetLastError()));
         WSACleanup();
-
+        throw std::runtime_error("socket() failed: " + std::to_string(WSAGetLastError()));
     }
     // binding to port
     sockaddr_in serverAddr;
@@ -23,17 +22,15 @@ ServerSocket::ServerSocket(int port) {
     serverAddr.sin_port = htons(port);       // Port 8080
 
     if(bind(sock_, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        throw std::runtime_error("bind() failed: " + std::to_string(WSAGetLastError()));
         closesocket(sock_);
         WSACleanup();
-
+        throw std::runtime_error("bind() failed: " + std::to_string(WSAGetLastError()));
     }
     // listen for connections
     if (listen(sock_, SOMAXCONN) == SOCKET_ERROR) {
-        throw std::runtime_error("listen() failed: " + std::to_string(WSAGetLastError()));
         closesocket(sock_);
         WSACleanup();
-
+        throw std::runtime_error("listen() failed: " + std::to_string(WSAGetLastError()));
     }
     std::cout << "Server listening on port " << port << "..." << std::endl;
 }
@@ -43,6 +40,7 @@ ServerSocket::~ServerSocket() {
     if (sock_ != INVALID_SOCKET) {
         closesocket(sock_);
     }
+    WSACleanup();
 }
 
 // accept incoming connection
