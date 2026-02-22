@@ -28,7 +28,7 @@ std::string Response::build() const {
         result += name + ": " + value + "\r\n";
     }
 
-    // Auto-add Content-Lenght based on body size
+    // Auto-add Content-Length based on body size
     result += "Content-Length: " + std::to_string(body_.size()) + "\r\n";
 
     // Blank line (end of headers)
@@ -65,5 +65,12 @@ Response Response::methodNotAllowed() {
     Response r;
     r.statusCode_ = 405;
     r.statusReason_ = "Method Not Allowed";
+    return r;
+}
+
+Response Response::forbidden() {
+    Response r;
+    r.statusCode_ = 403;
+    r.statusReason_ = "Forbidden";
     return r;
 }

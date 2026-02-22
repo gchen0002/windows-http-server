@@ -13,6 +13,7 @@ private:
     void handleClient(ClientSocket client);
     std::string readFile(const std::string& path) const;
     std::string getMimeType(const std::string& path) const;
+    std::string sanitizePath(const std::string& path) const;
 
     int port_;
     std::string rootDir_;

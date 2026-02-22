@@ -13,6 +13,7 @@ public:
     static Response notFound();
     static Response badRequest();
     static Response methodNotAllowed();
+    static Response forbidden();
 private:
     int statusCode_ = 200;
     std::string statusReason_ = "OK";

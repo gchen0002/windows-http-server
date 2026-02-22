@@ -2,6 +2,7 @@
 #include "request.hpp"
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 // constructor
 Server::Server(int port, const std::string& rootDir) : port_(port), rootDir_(rootDir), serverSocket_(nullptr){}
 
@@ -58,7 +59,17 @@ void Server::handleClient(ClientSocket client) {
         path = "/index.html";
     }
 
-    std::string content = readFile(rootDir_ + path);
+    // Sanitize path to prevent directory traversal attacks
+    std::string safePath = sanitizePath(path);
+    if (safePath.empty()) {
+        Response response = Response::forbidden()
+            .setHeader("Content-Type", "text/html")
+            .setBody("<h1>403 Forbidden</h1>");
+        client.send(response.build());
+        return;
+    }
+
+    std::string content = readFile(safePath);
 
     Response response;
     if (content.empty()) {
@@ -85,4 +96,29 @@ std::string Server::getMimeType(const std::string& path) const {
     if (path.size() >= 4 && path.substr(path.size() - 4) == ".png") return "image/png";
     if (path.size() >= 4 && path.substr(path.size() - 4) == ".jpg") return "image/jpeg";
     return "application/octet-stream";
+}
+
+std::string Server::sanitizePath(const std::string& path) const {
+    namespace fs = std::filesystem;
+
+    // Build the full path by combining root directory with requested path
+    fs::path fullPath = fs::path(rootDir_) / fs::path(path).relative_path();
+
+    // Get canonical (absolute, normalized) paths
+    // weakly_canonical resolves .. and . without requiring the file to exist
+    fs::path canonicalRoot = fs::weakly_canonical(rootDir_);
+    fs::path canonicalPath = fs::weakly_canonical(fullPath);
+
+    // Convert to strings for comparison
+    std::string rootStr = canonicalRoot.string();
+    std::string pathStr = canonicalPath.string();
+
+    // Check if the canonical path starts with the root directory
+    // If not, the path is trying to escape (e.g., ../../../etc/passwd)
+    if (pathStr.size() < rootStr.size() ||
+        pathStr.compare(0, rootStr.size(), rootStr) != 0) {
+        return "";  // Path escapes root directory - reject it
+    }
+
+    return canonicalPath.string();
 }
