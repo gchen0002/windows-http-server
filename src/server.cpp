@@ -1,4 +1,5 @@
 #include "server.hpp"
+#include "request.hpp"
 #include <fstream>
 #include <sstream>
 // constructor
@@ -29,24 +30,34 @@ std::string Server::readFile(const std::string& path) const {
     return ss.str();
 }
 void Server::handleClient(ClientSocket client) {
-    std::string request = client.recv();
+    std::string rawRequest = client.recv();
 
-    // Parse: "GET /index.html HTTP/1.1"
-    std::string path;
-    size_t firstSpace = request.find(' ');
-    if (firstSpace != std::string::npos) {
-        size_t secondSpace = request.find(' ', firstSpace + 1);
-        if (secondSpace != std::string::npos) {
-            path = request.substr(firstSpace + 1, secondSpace - firstSpace - 1);
-        }
+    if (rawRequest.empty()) {
+        return;  // Connection closed, nothing to do
     }
 
-    // default to index.html
+    Request request;
+    if (!request.parse(rawRequest)) {
+        Response response = Response::badRequest()
+            .setHeader("Content-Type", "text/html")
+            .setBody("<h1>400 Bad Request</h1>");
+        client.send(response.build());
+        return;
+    }
+
+    if (request.method() != "GET") {
+        Response response = Response::methodNotAllowed()
+            .setHeader("Content-Type", "text/html")
+            .setBody("<h1>405 Method Not Allowed</h1>");
+        client.send(response.build());
+        return;
+    }
+
+    std::string path = request.path();
     if (path == "/") {
         path = "/index.html";
     }
 
-    // try to read file
     std::string content = readFile(rootDir_ + path);
 
     Response response;

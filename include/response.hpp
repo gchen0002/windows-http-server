@@ -11,6 +11,8 @@ public:
 
     static Response ok();
     static Response notFound();
+    static Response badRequest();
+    static Response methodNotAllowed();
 private:
     int statusCode_ = 200;
     std::string statusReason_ = "OK";

@@ -53,3 +53,17 @@ Response Response::notFound() {
     r.statusReason_ = "Not Found";
     return r;
 }
+
+Response Response::badRequest() {
+    Response r;
+    r.statusCode_ = 400;
+    r.statusReason_ = "Bad Request";
+    return r;
+}
+
+Response Response::methodNotAllowed() {
+    Response r;
+    r.statusCode_ = 405;
+    r.statusReason_ = "Method Not Allowed";
+    return r;
+}
