@@ -3,20 +3,30 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
-// constructor
-Server::Server(int port, const std::string& rootDir) : port_(port), rootDir_(rootDir), serverSocket_(nullptr){}
+
+Server::Server(int port, const std::string& rootDir, size_t threads)
+    : port_(port)
+    , rootDir_(rootDir)
+    , threadCount_(threads)
+    , pool_(threads)
+    , serverSocket_(nullptr)
+{}
 
 void Server::start(){
     serverSocket_ = new ServerSocket(port_);
 }
 
-void Server::run(){
-    std::cout << "Server running on port " << port_ << std::endl;
+void Server::run() {
+    std::cout << "Server running on port " << port_ 
+              << " with " << threadCount_ << " threads" << std::endl;
 
     while (true) {
         SOCKET clientSock = serverSocket_->accept();
-        ClientSocket client(clientSock);
-        handleClient(std::move(client));
+        
+        pool_.enqueue([this, clientSock]() {
+            ClientSocket client(clientSock);
+            handleClient(std::move(client));
+        });
     }
 }
 

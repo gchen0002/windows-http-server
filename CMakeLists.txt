@@ -13,6 +13,7 @@ add_executable(http_server
     src/server.cpp
     src/response.cpp
     src/request.cpp
+    src/thread_pool.cpp
 )
 
 target_include_directories(http_server PRIVATE
